@@ -1,4 +1,4 @@
-//+build mage
+//+build ignore
 
 package main
 
@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"sort"
 )
+
+// func () sort(superviser *supervisor, s sequence) source {
+// }
 
 // qsort는 단순한 퀵정렬 알고리즘을 사용하여 정렬합니다.
 type qsort struct{}
@@ -413,3 +416,92 @@ func heapify(s list, x, n int) bool {
 	return x < i
 }
 
+// // counting sort
+// type csort struct{}
+//
+// func (csort csort) sort(s list) {
+// 	n := s.Len()
+// 	a, b := csort.minmax()
+// }
+
+func (p part) carve() list {
+	return p.list.Carve(p.i, p.j)
+}
+
+func (p part) size() int {
+	return p.j - p.i
+}
+
+// 승자 트리
+
+type part struct {
+	i, j int
+}
+
+type sortedPart part
+
+type sortedParts struct {
+	list  list
+	parts []sortedPart
+}
+
+func (s *sortedParts) init() {
+	n := len(s.parts)
+	for i := n / 2; i >= 0; i-- {
+		s.drop(i)
+	}
+}
+
+func (v *sortedParts) drop(i int) {
+	s := v.parts
+	n := len(parts)
+	l := s.list
+	for i < n {
+		j := 2*i + 1
+		if j >= n {
+			break
+		}
+		if j+1 < n && l.Less(s[j].i, s[j+1].i) {
+			j = j + 1
+		}
+		if l.Less(s[i].i, s[j].i) {
+			break
+		}
+		s[i], s[j] = s[j], s[i]
+		i = j
+	}
+}
+
+type naturalMergeSortV1 struct{}
+
+func (naturalMergeSortV1) makeruns(s list) (rs []sortedPart) {
+	i, n := 0, s.Len()
+	for i < n {
+		j := i + 1
+		for j < n && s.Less(j-1, j) {
+			j++
+		}
+		rs = append(rs, sortedPart{i, j})
+		i = j
+	}
+	return rs
+}
+
+func (naturalMergeSortV1) merge(ss *sortedParts) {
+	for {
+		n := h[0]
+		sorted = append(sorted, n.x)
+
+		r := rs[n.from]
+		i := n.i + 1
+		if i < len(r) {
+			h[0] = node{r[i], n.from, i}
+			sink(h, 0)
+		} else {
+			h[0], h[len(h)-1] = h[len(h)-1], h[0]
+			h = h[:len(h)-1]
+			sink(h, 0)
+		}
+	}
+	return sorted
+}
