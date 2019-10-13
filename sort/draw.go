@@ -27,23 +27,28 @@ func newDrawingData(record benchmarkRecord) *drawingData {
 	}
 }
 
-type drawing struct {
+type drawingStyle struct {
 	imageWidth         vg.Length
 	imageHeight        vg.Length
-	titleMaxsize       vg.Length
+	titleSize          vg.Length
 	xLabelSize         vg.Length
 	yLabelSize         vg.Length
 	importantLineStyle draw.LineStyle
 	auxiliaryLineStyle draw.LineStyle
 }
 
-func documentDrawing() *drawing {
-	return &drawing{
-		imageWidth:   130 * vg.Millimeter,
-		imageHeight:  46.4 * vg.Millimeter,
-		titleMaxsize: 6 * vg.Millimeter,
-		xLabelSize:   6 * vg.Millimeter,
-		yLabelSize:   6 * vg.Millimeter,
+type drawing struct {
+	pl *plot.Plot
+	drawingStyle
+}
+
+func documentStyle() drawing {
+	return drawingStyle{
+		imageWidth:  130 * vg.Millimeter,
+		imageHeight: 46.4 * vg.Millimeter,
+		titleSize:   6 * vg.Millimeter,
+		xLabelSize:  6 * vg.Millimeter,
+		yLabelSize:  6 * vg.Millimeter,
 		importantLineStyle: draw.LineStyle{
 			Width: vg.Points(2),
 			Color: plotutil.Color(0),
@@ -54,12 +59,39 @@ func documentDrawing() *drawing {
 	}
 }
 
-// func largeDrawing() *drawing {
-// 	return &drawing{
-// 		imageWidth:  imageWidth,
-// 		imageHeight: imageHeight,
-// 	}
-// }
+func (w *drawing) setTitle(title string) {
+	v := &w.pl.Title
+	v.Text = title
+	v.Font.Size = w.titleSize
+	v.Font = calibrateWidth(w.imageWidth, title, v.Font)
+}
+
+func calibrateWidth(width vg.Length, text string, font vg.Font) vg.Font {
+	font.Size = binarySearchLength(0, font.Size, func(size vg.Length) bool {
+		font.Size = size
+		return font.Width(text) <= width
+	})
+	return font
+}
+
+func binarySearchLength(a, b vg.Length, pred func(vg.Length) bool) vg.Length {
+	if pred(b) {
+		return b
+	}
+	const e = 1e-4
+	for b-a > e {
+		c := (a + b) / 2
+		if prec(c) {
+			a = c
+		} else {
+			b = c
+		}
+	}
+	if pred(b) {
+		return b
+	}
+	return a
+}
 
 func (w *drawing) storeRecord(record benchmarkRecord) error {
 	// TODO: storeRecord() 함수는 설계가 나쁘다.
@@ -127,17 +159,6 @@ func (w *drawing) drawSamples(data *drawingData, server serveY) (*plot.Plot, err
 	w.drawFunction(pl, "y = x²", quadraticFunc, plotutil.Color(2))
 	w.drawFunction(pl, "y = xlog(x)", xlogxFunc, plotutil.Color(3))
 	return pl, nil
-}
-
-func (w *drawing) setTitle(pl *plot.Plot, title string) {
-	pl.Title.Font.Size = w.titleMaxsize
-	for {
-		size := pl.Title.Font.Width(title)
-		if size <= w.imageWidth {
-			return
-		}
-		pl.Title.Font.Size -= 0.5
-	}
 }
 
 func (w *drawing) drawFunction(pl *plot.Plot, legend string, fn func(float64) float64, c color.Color) {
