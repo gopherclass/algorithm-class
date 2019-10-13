@@ -5,7 +5,7 @@ import "time"
 const (
 	rangeMin      = 0
 	rangeMax      = 1000
-	inputMaxsize  = 500
+	inputMaxsize  = 400
 	sortIteration = 7
 	inputBits     = 3
 	inputRadix    = 10
@@ -70,7 +70,7 @@ type inputFunc func(iteration uint) []int
 func measureSort(sorter sorter, src []int) (source, lesser, sortCounter) {
 	var c sortCounter
 	startTime := time.Now()
-	r := defaultLesser()
+	r := &aslesser{defaultLesser(), &c}
 	sorted := callSort(sorter, src, r, &c)
 	c.lapse = time.Since(startTime)
 	return sorted, r, c

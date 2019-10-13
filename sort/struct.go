@@ -46,6 +46,18 @@ type iterativeHash interface {
 	Hash(bit int, x interface{}) int // order = 0, 1, 2, ...
 }
 
+type mapping interface {
+	Map() int
+}
+
+type mappinglesser sequenceless
+
+func (le mappinglesser) Less(x, y interface{}) bool {
+	i := x.(mapping).Map()
+	j := y.(mapping).Map()
+	return sequenceless(le).Less(i, j)
+}
+
 type source interface{}
 
 type sequence interface {
@@ -79,7 +91,7 @@ func newSequence(c *sortCounter, initialCapacity int) sequence {
 	}
 	v := make(asvec, 0, initialCapacity)
 	return &measuresequence{
-		sequence: v,
+		sequence: &v,
 		counter:  c,
 	}
 }

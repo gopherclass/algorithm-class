@@ -72,7 +72,7 @@ func (w *drawing) storeRecord(record benchmarkRecord) error {
 		err0 = err
 	}
 	draw := func(server serveY) {
-		pl, err := w.drawSamples(data, serveCompare{})
+		pl, err := w.drawSamples(data, server)
 		setErr(err)
 		if err == nil {
 			name := fmt.Sprintf("%s - %s - %s.jpg",

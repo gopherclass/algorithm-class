@@ -37,7 +37,7 @@ func heapfloat(s vecless, i int) {
 }
 
 func heappop(v vecless) interface{} {
-	n := v.Len() - 1
+	n := v.Len()
 	v.Swap(0, n-1)
 	x := v.Pop()
 	heapdrop(v, 0)
