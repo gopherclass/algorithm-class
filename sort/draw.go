@@ -59,6 +59,14 @@ func documentStyle() drawing {
 	}
 }
 
+func newDrawing() (*drawing, error) {
+	pl, err := plot.New()
+	if err != nil {
+		return nil, err
+	}
+	return &drawing{pl: pl}, nil
+}
+
 func (w *drawing) setTitle(title string) {
 	v := &w.pl.Title
 	v.Text = title
