@@ -177,34 +177,3 @@ func (naturalMergeSort) sort(c *sortCounter, s []int) []int {
 	res := rmerges(c, runs{c, rs}, len(s))
 	return res.Ints()
 }
-
-// func main() {
-// 	var a algs
-// 	a.alg("selection sort", ssort{}, 600, 3, 300)
-// 	a.alg("bubble sort", bsort{}, 600, 3, 300)
-// 	a.alg("cocktail shaker sort", csort{}, 600, 3, 300)
-// 	a.alg("exchange sort", esort{}, 600, 3, 300)
-// 	a.runTests()
-// }
-//
-// func main2() {
-// 	var a algs
-// 	const iteration = 3
-// 	// a.alg("selection sort", ssort{}, 300, iteration, 200)
-// 	// a.alg("bubble sort", bsort{}, 300, iteration, 200)
-// 	// a.alg("insertion sort", isort{}, 500, iteration, 200)
-// 	// a.alg("shell sort", shellsort{}, 500, iteration, 500)
-// 	// a.alg("quick sort", qsort{}, 500, iteration, 500)
-// 	// a.alg("insertion sort(M=10) + quick sort", iqsort{lim: 10}, 500, iteration, 500)
-// 	// a.alg("median of three + quick sort", mqsort{}, 500, iteration, 500)
-// 	// a.alg("median of three + insertion(M=10) + quick sort", miqsort{lim: 10}, 500, iteration, 500)
-// 	for m := 3; m <= 40; m++ {
-// 		a.test(fmt.Sprintf("insertion(M=%d) + quick sort", m), iqsort{lim: m}, 500, 200)
-// 	}
-// 	for m := 3; m <= 20; m++ {
-// 		a.test(fmt.Sprintf("insertion(M=%d) + quick sort", m), iqsort{lim: m}, 500, 2000)
-// 	}
-// 	a.runTests()
-// 	// a.run()
-// 	// a.runDraw()
-// }
