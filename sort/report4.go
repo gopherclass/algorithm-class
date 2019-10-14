@@ -133,7 +133,6 @@ func (naturalMergeSort) epithet() string { return "natural-merge-sort" }
 
 func (naturalMergeSort) sort(c *sortCounter, s []int) []int {
 	rs := makeruns(ints{c, s})
-	c.Len()
 	res := rmerges(c, runs{c, rs}, len(s))
 	return res.Ints()
 }
