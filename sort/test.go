@@ -14,7 +14,7 @@ type testResult struct {
 }
 
 func testSort(sorter sorter) testResult {
-	const maxiteration = 200
+	const maxiteration = 1000
 	var result testResult
 	var rawinput = make([]int, 0, maxiteration)
 	for i := uint(0); i <= maxiteration; i++ {
