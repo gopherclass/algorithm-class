@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"image/color"
 	"math"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"gonum.org/v1/plot"
@@ -13,18 +16,37 @@ import (
 	"gonum.org/v1/plot/vg/draw"
 )
 
-type drawingData struct {
-	sortName  string
-	inputName string
-	samples   []sortStat
+type serveY interface {
+	serveY(sample sortStat) float64
+	label() string
 }
 
-func newDrawingData(record benchmarkRecord) *drawingData {
-	return &drawingData{
-		sortName:  record.sortName,
-		inputName: record.inputName,
-		samples:   record.sizedStats,
+func serveXYs(server serveY, samples []sortStat) plotter.XYs {
+	set := make(plotter.XYs, len(samples))
+	for i, sample := range samples {
+		set[i].X = float64(i)
+		set[i].Y = server.serveY(sample)
 	}
+	return set
+}
+
+type drawingLine struct {
+	label string
+	line  *plotter.Line
+}
+
+func (l drawingLine) draw(pl *plot.Plot) {
+	pl.Add(l.line)
+	pl.Legend.Add(l.label, l.line)
+}
+
+func serveLine(server serveY, samples []sortStat) (*plotter.Line, error) {
+	return plotter.NewLine(serveXYs(server, samples))
+}
+
+type drawingData struct {
+	label   string
+	samples []sortStat
 }
 
 type drawingStyle struct {
@@ -37,44 +59,60 @@ type drawingStyle struct {
 	auxiliaryLineStyle draw.LineStyle
 }
 
-type drawing struct {
-	pl *plot.Plot
-	drawingStyle
-}
-
-func documentStyle() drawing {
-	return drawingStyle{
-		imageWidth:  130 * vg.Millimeter,
-		imageHeight: 46.4 * vg.Millimeter,
-		titleSize:   6 * vg.Millimeter,
-		xLabelSize:  6 * vg.Millimeter,
-		yLabelSize:  6 * vg.Millimeter,
-		importantLineStyle: draw.LineStyle{
-			Width: vg.Points(2),
-			Color: plotutil.Color(0),
-		},
-		auxiliaryLineStyle: draw.LineStyle{
-			Width: vg.Points(1),
-		},
-	}
-}
-
-func newDrawing() (*drawing, error) {
+func (w *drawingStyle) drawPlot(title string, server serveY, all ...drawingData) (*plot.Plot, error) {
 	pl, err := plot.New()
 	if err != nil {
 		return nil, err
 	}
-	return &drawing{pl: pl}, nil
+	setTitle(pl, title, w.titleSize)
+	pl.X.Text = "Size"
+	pl.X.TextStyle.Size = w.xLabelSize
+	pl.Y.Text = strings.ToTitle(server.label())
+	pl.Y.TextStyle.Size = w.yLabelSize
+
+	var pal palette
+	drawFunc := func(label string, fx func(float64) float64) {
+		fn := plotter.NewFunction(fx)
+		fn.LineStyle.Width = vg.Points(1)
+		fn.LineStyle.Color = pal.color()
+		pl.Add(fn)
+		pl.Legend.Add(label, fn)
+	}
+	drawFunc("y = x", identifyFunc)
+	drawFunc("y = x²", quadraticFunc)
+	drawFunc("y = xlog(x)", xlogxFunc)
+
+	for _, data := range all {
+		line, err := serveLine(server, samples)
+		if err != nil {
+			return nil, err
+		}
+		line.LineStyle.Width = vg.Points(3)
+		line.LineStyle.Color = pal.color()
+		pl.Add(line)
+		pl.Legend.Add(data.label, line)
+	}
+	return pl, nil
 }
 
-func (w *drawing) setTitle(title string) {
-	v := &w.pl.Title
+type palette struct {
+	i int
+}
+
+func (p *palette) color() color.Color {
+	c := plotutil.Color(p.i)
+	p.i++
+	return c
+}
+
+func setTitle(pl *plot.Plot, title string, size vg.Length) {
+	v := &pl.Title
 	v.Text = title
-	v.Font.Size = w.titleSize
-	v.Font = calibrateWidth(w.imageWidth, title, v.Font)
+	v.Font.Size = size
+	v.Font = calibrateFontWidth(style.imageWidth, title, v.Font)
 }
 
-func calibrateWidth(width vg.Length, text string, font vg.Font) vg.Font {
+func calibrateFontWidth(width vg.Length, text string, font vg.Font) vg.Font {
 	font.Size = binarySearchLength(0, font.Size, func(size vg.Length) bool {
 		font.Size = size
 		return font.Width(text) <= width
@@ -101,94 +139,40 @@ func binarySearchLength(a, b vg.Length, pred func(vg.Length) bool) vg.Length {
 	return a
 }
 
-func (w *drawing) storeRecord(record benchmarkRecord) error {
-	// TODO: storeRecord() 함수는 설계가 나쁘다.
-	data := newDrawingData(record)
-	var err0 error
-	setErr := func(err error) {
-		if err0 != nil {
-			return
+func (w *drawingStyle) savePlot(pl *plot.Plot, path string) error {
+	return pl.Save(w.imageWidth, w.imageHeight, path)
+}
+
+func (w *drawingStyle) drawRecord(r benchmarkRecord, server serveY) (*plot.Plot, error) {
+	title := fmt.Sprintf("%s - %s", r.sortName, r.inputName)
+	data := drawingData{
+		label:   server.label(),
+		samples: r.samples,
+	}
+	return w.drawPlot(title, server, data)
+}
+
+func (w *drawingStyle) saveResult(res benchmarkResult) error {
+	os.Mkdir(result.sortName)
+	for _, record := range res.records {
+		for _, server := range []serveY{
+			serveCompare{},
+			serveCompare{},
+			serveAccess{},
+			serveMicrosecondLapse{},
+		} {
+			pl, err := w.drawRecord(r, server)
+			if err != nil {
+				return err
+			}
+			name := fmt.Sprintf("%s - %s.jpeg", r.sortName, r.inputName)
+			err = w.savePlot(pl, filepath.Join(res.sortName, name))
+			if err != nil {
+				return err
+			}
 		}
-		err0 = err
 	}
-	draw := func(server serveY) {
-		pl, err := w.drawSamples(data, server)
-		setErr(err)
-		if err == nil {
-			name := fmt.Sprintf("%s - %s - %s.jpg",
-				record.sortName,
-				record.inputName,
-				server.label())
-			setErr(w.storePlot(pl, name))
-		}
-	}
-	draw(serveCompare{})
-	draw(serveCompare{})
-	draw(serveAccess{})
-	draw(serveMicrosecondLapse{})
-	draw(&serveTotal{
-		compareWeight: 1.0,
-		swapWeight:    3.0,
-		accessWeight:  1.0,
-	})
-	return err0
-}
-
-func (w *drawing) storePlot(pl *plot.Plot, name string) error {
-	return pl.Save(w.imageWidth, w.imageHeight, name)
-}
-
-func (w *drawing) drawSamples(data *drawingData, server serveY) (*plot.Plot, error) {
-	pl, err := plot.New()
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: size scaling
-	set := serveSet(server, data.samples)
-	line, err := plotter.NewLine(set)
-	if err != nil {
-		return nil, err
-	}
-	line.LineStyle = w.importantLineStyle
-
-	title := fmt.Sprintf("%s - %s", data.sortName, data.inputName)
-	w.setTitle(pl, title)
-
-	pl.X.Label.Text = "Size"
-	pl.X.Label.Font.Size = w.xLabelSize
-	pl.Y.Label.Text = server.label()
-	pl.Y.Label.Font.Size = w.yLabelSize
-
-	pl.Add(line)
-	pl.Legend.Add(server.label(), line)
-
-	w.drawFunction(pl, "y = x", identifyFunc, plotutil.Color(1))
-	w.drawFunction(pl, "y = x²", quadraticFunc, plotutil.Color(2))
-	w.drawFunction(pl, "y = xlog(x)", xlogxFunc, plotutil.Color(3))
-	return pl, nil
-}
-
-func (w *drawing) drawFunction(pl *plot.Plot, legend string, fn func(float64) float64, c color.Color) {
-	v := plotter.NewFunction(fn)
-	v.LineStyle = w.auxiliaryLineStyle
-	v.LineStyle.Color = c
-	pl.Add(v)
-	pl.Legend.Add(legend, v)
-}
-
-type serveY interface {
-	serveY(sample sortStat) float64
-	label() string
-}
-
-func serveSet(server serveY, samples []sortStat) plotter.XYs {
-	set := make(plotter.XYs, len(samples))
-	for i, sample := range samples {
-		set[i].X = float64(i)
-		set[i].Y = server.serveY(sample)
-	}
-	return set
+	return nil
 }
 
 type serveCompare struct{}
@@ -235,21 +219,6 @@ func convNanoseconds(d time.Duration) int64  { return int64(d) }
 func convMicroseconds(d time.Duration) int64 { return int64(d) / 1e3 }
 func convMilliseconds(d time.Duration) int64 { return int64(d) / 1e6 }
 
-type serveTotal struct {
-	compareWeight float64
-	swapWeight    float64
-	accessWeight  float64
-}
-
-func (serveTotal) label() string { return "total" }
-
-func (w *serveTotal) serveY(s sortStat) float64 {
-	tot := w.compareWeight * s.averageLess
-	tot += w.swapWeight * s.averageSwap
-	tot += w.accessWeight * s.averagePeek
-	return tot
-}
-
 func identifyFunc(x float64) float64 { return x }
 
 func quadraticFunc(x float64) float64 { return x * x }
@@ -259,4 +228,14 @@ func xlogxFunc(x float64) float64 {
 		return 0
 	}
 	return x * math.Log2(x)
+}
+
+func documentStyle() *drawingStyle {
+	return drawingStyle{
+		imageWidth:  130 * vg.Millimeter,
+		imageHeight: 46.4 * vg.Millimeter,
+		titleSize:   6 * vg.Millimeter,
+		xLabelSize:  6 * vg.Millimeter,
+		yLabelSize:  6 * vg.Millimeter,
+	}
 }

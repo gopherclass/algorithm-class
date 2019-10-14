@@ -12,13 +12,14 @@ const (
 )
 
 type benchmarkResult struct {
-	records []benchmarkRecord
+	sortName string
+	records  []benchmarkRecord
 }
 
 type benchmarkRecord struct {
-	sortName   string
-	inputName  string // TODO: extends
-	sizedStats []sortStat
+	sortName  string
+	inputName string // TODO: extends
+	samples   []sortStat
 }
 
 func benchmark(sorter sorter, maxsize, iteration uint) benchmarkResult {
@@ -53,15 +54,18 @@ func benchmark(sorter sorter, maxsize, iteration uint) benchmarkResult {
 		record := benchmarkInput(sorter, input.name, input.makeinput, iteration, maxsize)
 		records = append(records, record)
 	}
-	return benchmarkResult{records: records}
+	return benchmarkResult{
+		sortName: sorter.epithet(),
+		records:  records,
+	}
 }
 
 func benchmarkInput(sorter sorter, inputName string, makeinput sizedInputFunc, iteration, maxsize uint) benchmarkRecord {
-	sizedStats := iterateSizedSort(sorter, makeinput, constIteration(iteration), maxsize)
+	samples := iterateSizedSort(sorter, makeinput, constIteration(iteration), maxsize)
 	return benchmarkRecord{
-		sortName:   sorter.epithet(),
-		inputName:  inputName,
-		sizedStats: sizedStats,
+		sortName:  sorter.epithet(),
+		inputName: inputName,
+		samples:   samples,
 	}
 }
 
