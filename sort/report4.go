@@ -3,6 +3,7 @@ package main
 func init() {
 	registerSorter(naturalMergeSort{})
 	registerSorter(naturalMergeSortHeap{})
+	registerSorter(mergeSort{})
 	registerSorter(tournamentSort{})
 }
 
@@ -135,6 +136,30 @@ func (naturalMergeSort) sort(c *sortCounter, s []int) []int {
 	rs := makeruns(ints{c, s})
 	res := rmerges(c, runs{c, rs}, len(s))
 	return res.Ints()
+}
+
+type mergeSort struct{}
+
+func (mergeSort) epithet() string { return "merge-sort" }
+
+func (sort mergeSort) sort(c *sortCounter, s []int) []int {
+	return sort.do(c, ints{c, s}).Ints()
+}
+
+func (sort mergeSort) do(c *sortCounter, s ints) ints {
+	n := s.Len()
+	if n == 0 {
+		return ints{c: c}
+	}
+	if n == 1 {
+		return s
+	}
+	a := sort.do(c, s.Slice(0, n/2))
+	b := sort.do(c, s.Slice(n/2, n))
+	res := ints{c, make([]int, 0, a.Len()+b.Len())}
+	mergeTwo(c, &res, a, b)
+	return res
+
 }
 
 type tournamentSort struct{}
