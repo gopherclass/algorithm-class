@@ -4,6 +4,7 @@ func init() {
 	registerSorter(qsort{})
 	registerSorter(naturalMergeSort{})
 	registerSorter(naturalMergeSortHeap{})
+	registerSorter(tournamentSort{})
 }
 
 type qsort struct{}
@@ -176,4 +177,77 @@ func (naturalMergeSort) sort(c *sortCounter, s []int) []int {
 	c.Len()
 	res := rmerges(c, runs{c, rs}, len(s))
 	return res.Ints()
+}
+
+type tournamentSort struct{}
+
+func (tournamentSort) epithet() string { return "tournament-sort" }
+
+func (sort tournamentSort) sort(c *sortCounter, s []int) []int {
+	const sentinel = 999123989
+	k := msb(len(s)) << 1
+	t := ints{c, make([]int, 2*k-1)}
+	copydef(t.s[len(t.s)-k:], s, sentinel)
+
+	res := make([]int, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		sort.tournament(t, k-1)
+		res = append(res, t.Peek(0))
+		sort.remove(t, sentinel)
+	}
+	return res
+}
+
+func (sort tournamentSort) tournament(s ints, i int) {
+	j := s.Len()
+	for i > 0 {
+		sort.runstage(s, i, j)
+		i, j = (i-1)/2, i
+	}
+}
+
+func (sort tournamentSort) runstage(s ints, i, j int) {
+	for i < j {
+		u := i
+		if !s.Less(i, i+1) {
+			u = i + 1
+		}
+		k := (i - 1) / 2
+		s.Set(k, s.Peek(u))
+		i += 2
+	}
+}
+
+func (sort tournamentSort) remove(s ints, sentinel int) {
+	v := s.Peek(0)
+	i := 0
+	for i < s.Len() {
+		s.Set(i, sentinel)
+		j := 2*i + 1
+		if j >= s.Len() {
+			break
+		}
+		if v == s.Peek(j) {
+			i = j
+		} else {
+			i = j + 1
+		}
+	}
+}
+
+func msb(n int) int {
+	var r uint
+	n >>= 1
+	for n > 0 {
+		n >>= 1
+		r++
+	}
+	return 1 << r
+}
+
+func copydef(t, s []int, def int) {
+	n := copy(t, s)
+	for i := n; i < len(t); i++ {
+		t[i] = def
+	}
 }

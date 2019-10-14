@@ -186,6 +186,11 @@ func (s *ints) Push(x interface{}) {
 	s.s = append(s.s, x.(int))
 }
 
+func (s ints) Set(i int, x int) {
+	s.c.Set()
+	s.s[i] = x
+}
+
 func (s ints) Peek(i int) int {
 	s.c.Peek()
 	return s.s[i]
