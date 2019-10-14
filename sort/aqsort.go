@@ -1,3 +1,5 @@
+//+build ignore
+
 package main
 
 // aqsort는 Quick Sort 알고리즘을 공격하는 데이터 입력을 찾아낸다. 이

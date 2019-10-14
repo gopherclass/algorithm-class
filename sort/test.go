@@ -21,11 +21,11 @@ func testSort(sorter sorter) testResult {
 		size := i
 		input := fuzzInput(size)(i)
 		rawinput = append(rawinput[:0], input...)
-		sorted, r, counter := measureSort(sorter, input)
+		sorted, counter := measureSort(sorter, input)
 		accCounter(&result.stat, counter)
-		if !isSorted(sorted, r) {
+		if len(sorted) != len(input) || !isSorted(sorted) {
 			result.errinput = rawinput
-			result.erroutput = input
+			result.erroutput = sorted
 			return result
 		}
 	}
@@ -33,36 +33,12 @@ func testSort(sorter sorter) testResult {
 	return result
 }
 
-func isSorted(src source, r lesser) bool {
-	switch src := src.(type) {
-	case sequence:
-		return isSortedSequence(src, r)
-	case lnk:
-		return isSortedLink(src, r)
-	default:
-		panic("invalid type")
-	}
-}
-
-func isSortedSequence(s sequence, r lesser) bool {
-	n := s.Len()
-	if n == 0 {
+func isSorted(s []int) bool {
+	if len(s) == 0 {
 		return true
 	}
-	l := sequenceless{s, r}
-	for i := 1; i < n; i++ {
-		if !l.Less(i-1, i) {
-			return false
-		}
-	}
-	return true
-}
-
-func isSortedLink(l lnk, r lesser) bool {
-	rewind(l, -1)
-	n := l.Len()
-	for i := 1; i < n; i++ {
-		if !lesslnk(l, r) {
+	for i := 1; i < len(s); i++ {
+		if s[i-1] > s[i] {
 			return false
 		}
 	}

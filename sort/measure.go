@@ -152,3 +152,53 @@ func (c *sortCounter) Prev() bool {
 	c.nprev++
 	return true
 }
+
+type ints struct {
+	c *sortCounter
+	s []int
+}
+
+func (s ints) Len() int {
+	s.c.Len()
+	return len(s.s)
+}
+
+func (s ints) Less(i, j int) bool {
+	s.c.Less()
+	return s.s[i] <= s.s[j]
+}
+
+func (s ints) Swap(i, j int) {
+	s.c.Swap()
+	s.s[i], s.s[j] = s.s[j], s.s[i]
+}
+
+func (s *ints) Pop() interface{} {
+	s.c.Pop()
+	n := s.Len() - 1
+	x := (s.s)[n]
+	s.s = (s.s)[:n]
+	return x
+}
+
+func (s *ints) Push(x interface{}) {
+	s.c.Push()
+	s.s = append(s.s, x.(int))
+}
+
+func (s ints) Peek(i int) int {
+	s.c.Peek()
+	return s.s[i]
+}
+
+func (s ints) Slice(i, j int) ints {
+	s.c.Slice()
+	return ints{
+		c: s.c,
+		s: s.s[i:j],
+	}
+}
+
+func (s ints) Ints() []int {
+	return s.s
+}

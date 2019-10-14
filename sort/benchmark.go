@@ -2,15 +2,6 @@ package main
 
 import "time"
 
-const (
-	rangeMin      = 0
-	rangeMax      = 1000
-	inputMaxsize  = 400
-	sortIteration = 7
-	inputBits     = 3
-	inputRadix    = 10
-)
-
 type benchmarkResult struct {
 	sortName string
 	records  []benchmarkRecord
@@ -42,13 +33,13 @@ func benchmark(sorter sorter, maxsize, iteration uint) benchmarkResult {
 		// {"almost sorted input (0.25 swapped)", swappedSorted(0.25)},
 		// {"almost sorted input (0.125 swapped)", swappedSorted(0.125)},
 	}
-	if _, ok := sorter.(isqsort); ok {
-		killqsort := func(size uint) inputFunc {
-			killer := antiqsort(sorter.(sequenceSorter), int(size))
-			return constInput(killer)
-		}
-		inputs = append(inputs, inputType{"killing input", killqsort})
-	}
+	// if _, ok := sorter.(isqsort); ok {
+	// 	killqsort := func(size uint) inputFunc {
+	// 		killer := antiqsort(sorter.(sequenceSorter), int(size))
+	// 		return constInput(killer)
+	// 	}
+	// 	inputs = append(inputs, inputType{"killing input", killqsort})
+	// }
 	records := make([]benchmarkRecord, 0, len(inputs))
 	for _, input := range inputs {
 		record := benchmarkInput(sorter, input.name, input.makeinput, iteration, maxsize)
@@ -71,34 +62,12 @@ func benchmarkInput(sorter sorter, inputName string, makeinput sizedInputFunc, i
 
 type inputFunc func(iteration uint) []int
 
-func measureSort(sorter sorter, src []int) (source, lesser, sortCounter) {
+func measureSort(sorter sorter, s []int) ([]int, sortCounter) {
 	var c sortCounter
 	startTime := time.Now()
-	r := &aslesser{defaultLesser(), &c}
-	sorted := callSort(sorter, src, r, &c)
+	ret := sorter.sort(&c, s)
 	c.lapse = time.Since(startTime)
-	return sorted, r, c
-}
-
-func defaultLesser() lesser {
-	return &lesserRadixInt{
-		bits:  inputBits,
-		radix: inputRadix,
-	}
-}
-
-func callSort(sorter sorter, src []int, r lesser, c *sortCounter) source {
-	switch sorter := sorter.(type) {
-	case sequenceSorter:
-		return sorter.sort(wrapSequence(asints(src), c), r, c)
-	case vecSorter:
-		v := asints(src)
-		return sorter.sort(wrapVec(&v, c), r, c)
-	case lnkSorter:
-		return sorter.sort(wrapLink(convLink(src), c), r, c)
-	default:
-		panic("unrecognized sorter")
-	}
+	return ret, c
 }
 
 func iterateSort(sorter sorter, inputFunc inputFunc, iteration uint) sortStat {
@@ -107,7 +76,7 @@ func iterateSort(sorter sorter, inputFunc inputFunc, iteration uint) sortStat {
 	var stat sortStat
 	for i := uint(1); i <= iteration; i++ {
 		input := inputFunc(i)
-		_, _, counter := measureSort(sorter, input)
+		_, counter := measureSort(sorter, input)
 		accCounter(&stat, counter)
 	}
 	return stat

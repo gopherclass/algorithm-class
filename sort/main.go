@@ -21,16 +21,10 @@ func registerSorter(sorter sorter) {
 		return nil
 	}
 	forDraw := func(ctx context.Context) error {
-		const maxsize = 500
+		const maxsize = 1000
 		const iteration = 10
 		res := benchmark(sorter, maxsize, iteration)
-		for _, record := range res.records {
-			err := documentDrawing().storeRecord(record)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
+		return documentStyle().saveResult(res)
 	}
 	register("test-"+sorter.epithet(), forTest)
 	register("draw-"+sorter.epithet(), forDraw)

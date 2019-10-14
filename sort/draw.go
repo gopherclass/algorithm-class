@@ -64,11 +64,11 @@ func (w *drawingStyle) drawPlot(title string, server serveY, all ...drawingData)
 	if err != nil {
 		return nil, err
 	}
-	setTitle(pl, title, w.titleSize)
-	pl.X.Text = "Size"
-	pl.X.TextStyle.Size = w.xLabelSize
-	pl.Y.Text = strings.ToTitle(server.label())
-	pl.Y.TextStyle.Size = w.yLabelSize
+	w.setTitle(pl, title, w.titleSize)
+	pl.X.Label.Text = "Size"
+	pl.X.Label.TextStyle.Font.Size = w.xLabelSize
+	pl.Y.Label.Text = strings.Title(server.label())
+	pl.Y.Label.TextStyle.Font.Size = w.yLabelSize
 
 	var pal palette
 	drawFunc := func(label string, fx func(float64) float64) {
@@ -83,7 +83,7 @@ func (w *drawingStyle) drawPlot(title string, server serveY, all ...drawingData)
 	drawFunc("y = xlog(x)", xlogxFunc)
 
 	for _, data := range all {
-		line, err := serveLine(server, samples)
+		line, err := serveLine(server, data.samples)
 		if err != nil {
 			return nil, err
 		}
@@ -105,11 +105,11 @@ func (p *palette) color() color.Color {
 	return c
 }
 
-func setTitle(pl *plot.Plot, title string, size vg.Length) {
+func (w *drawingStyle) setTitle(pl *plot.Plot, title string, size vg.Length) {
 	v := &pl.Title
 	v.Text = title
 	v.Font.Size = size
-	v.Font = calibrateFontWidth(style.imageWidth, title, v.Font)
+	v.Font = calibrateFontWidth(w.imageWidth, title, v.Font)
 }
 
 func calibrateFontWidth(width vg.Length, text string, font vg.Font) vg.Font {
@@ -127,7 +127,7 @@ func binarySearchLength(a, b vg.Length, pred func(vg.Length) bool) vg.Length {
 	const e = 1e-4
 	for b-a > e {
 		c := (a + b) / 2
-		if prec(c) {
+		if pred(c) {
 			a = c
 		} else {
 			b = c
@@ -153,8 +153,8 @@ func (w *drawingStyle) drawRecord(r benchmarkRecord, server serveY) (*plot.Plot,
 }
 
 func (w *drawingStyle) saveResult(res benchmarkResult) error {
-	os.Mkdir(result.sortName)
-	for _, record := range res.records {
+	os.Mkdir(res.sortName, os.ModePerm)
+	for _, r := range res.records {
 		for _, server := range []serveY{
 			serveCompare{},
 			serveCompare{},
@@ -165,7 +165,7 @@ func (w *drawingStyle) saveResult(res benchmarkResult) error {
 			if err != nil {
 				return err
 			}
-			name := fmt.Sprintf("%s - %s.jpeg", r.sortName, r.inputName)
+			name := fmt.Sprintf("%s - %s.jpeg", r.inputName, server.label())
 			err = w.savePlot(pl, filepath.Join(res.sortName, name))
 			if err != nil {
 				return err
@@ -231,7 +231,7 @@ func xlogxFunc(x float64) float64 {
 }
 
 func documentStyle() *drawingStyle {
-	return drawingStyle{
+	return &drawingStyle{
 		imageWidth:  130 * vg.Millimeter,
 		imageHeight: 46.4 * vg.Millimeter,
 		titleSize:   6 * vg.Millimeter,
