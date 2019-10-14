@@ -5,6 +5,7 @@ func init() {
 	registerSorter(naturalMergeSortHeap{})
 	registerSorter(mergeSort{})
 	registerSorter(tournamentSort{})
+	registerSorter(heapSort{})
 }
 
 func makeruns(s ints) []ints {
@@ -233,4 +234,18 @@ func copydef(t, s []int, def int) {
 	for i := n; i < len(t); i++ {
 		t[i] = def
 	}
+}
+
+type heapSort struct{}
+
+func (heapSort) epithet() string { return "heap-sort" }
+
+func (heapSort) sort(c *sortCounter, s []int) []int {
+	t := ints{c, s}
+	res := make([]int, 0, len(s))
+	heapinit(t)
+	for t.Len() > 0 {
+		res = append(res, heappop(&t).(int))
+	}
+	return res
 }
