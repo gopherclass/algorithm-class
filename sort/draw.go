@@ -16,6 +16,17 @@ import (
 	"gonum.org/v1/plot/vg/draw"
 )
 
+func documentStyle() *drawingStyle {
+	// 160 x 240
+	return &drawingStyle{
+		imageWidth:  160 * vg.Millimeter,
+		imageHeight: 113 * vg.Millimeter,
+		titleSize:   8 * vg.Millimeter,
+		xLabelSize:  4 * vg.Millimeter,
+		yLabelSize:  4 * vg.Millimeter,
+	}
+}
+
 type serveY interface {
 	serveY(sample sortStat) float64
 	label() string
@@ -228,14 +239,4 @@ func xlogxFunc(x float64) float64 {
 		return 0
 	}
 	return x * math.Log2(x)
-}
-
-func documentStyle() *drawingStyle {
-	return &drawingStyle{
-		imageWidth:  130 * vg.Millimeter,
-		imageHeight: 46.4 * vg.Millimeter,
-		titleSize:   6 * vg.Millimeter,
-		xLabelSize:  6 * vg.Millimeter,
-		yLabelSize:  6 * vg.Millimeter,
-	}
 }
