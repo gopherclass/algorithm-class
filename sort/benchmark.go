@@ -3,6 +3,7 @@ package main
 import "time"
 
 type benchmarkResult struct {
+	sorter   sorter
 	sortName string
 	records  []benchmarkRecord
 }
@@ -46,6 +47,7 @@ func benchmark(sorter sorter, maxsize, iteration uint) benchmarkResult {
 		records = append(records, record)
 	}
 	return benchmarkResult{
+		sorter:   sorter,
 		sortName: sorter.epithet(),
 		records:  records,
 	}

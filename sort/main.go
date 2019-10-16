@@ -53,8 +53,10 @@ func invalidTargetNames(targetNames []string) (invalids []string) {
 }
 
 func proc(ctx context.Context) error {
-	targetArgs, args := separateArgs(os.Args[1:])
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	compareGraph := fs.Bool("c", false, "draw compared graph")
+
+	targetArgs, args := separateArgs(os.Args[1:])
 	err := fs.Parse(targetArgs)
 	if err != nil {
 		return err
@@ -69,6 +71,9 @@ func proc(ctx context.Context) error {
 		abort()
 	}
 	flag.CommandLine.Parse(args)
+	if *compareGraph {
+		return compareTargets(ctx, targetNames)
+	}
 	return executeTargets(ctx, targetNames)
 }
 
@@ -88,6 +93,10 @@ func helpTargets() {
 	for _, targetName := range validTargetNames {
 		fmt.Fprintf(os.Stderr, "  - %s\n", targetName)
 	}
+}
+
+func compareTargets(ctx context.Context, targetNames []string) error {
+	return nil
 }
 
 func executeTargets(ctx context.Context, targetNames []string) error {

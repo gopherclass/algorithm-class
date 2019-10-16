@@ -163,15 +163,25 @@ func (w *drawingStyle) drawRecord(r benchmarkRecord, server serveY) (*plot.Plot,
 	return w.drawPlot(title, server, data)
 }
 
+type hasServers interface {
+	servers() []serveY
+}
+
 func (w *drawingStyle) saveResult(res benchmarkResult) error {
 	os.Mkdir(res.sortName, os.ModePerm)
+	serversDrawn := []serveY{
+		serveCompare{},
+		serveSwap{},
+		serveCompare{},
+		serveAccess{},
+		serveMicrosecondLapse{},
+	}
+	serverProvider, ok := res.sorter.(hasServers)
+	if ok {
+		serversDrawn = serverProvider.servers()
+	}
 	for _, r := range res.records {
-		for _, server := range []serveY{
-			serveCompare{},
-			serveCompare{},
-			serveAccess{},
-			serveMicrosecondLapse{},
-		} {
+		for _, server := range serversDrawn {
 			pl, err := w.drawRecord(r, server)
 			if err != nil {
 				return err
@@ -229,6 +239,16 @@ func (serveMicrosecondLapse) serveY(sample sortStat) float64 {
 func convNanoseconds(d time.Duration) int64  { return int64(d) }
 func convMicroseconds(d time.Duration) int64 { return int64(d) / 1e3 }
 func convMilliseconds(d time.Duration) int64 { return int64(d) / 1e6 }
+
+type serveWeightedSwap struct{}
+
+func (serveWeightedSwap) label() string {
+	return "swap (weighted)"
+}
+
+func (serveWeightedSwap) serveY(sample sortStat) float64 {
+	return sample.averageSet / 2
+}
 
 func identifyFunc(x float64) float64 { return x }
 

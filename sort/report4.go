@@ -87,7 +87,6 @@ func rmerges(c *sortCounter, rs runs, n int) ints {
 	for rs.Len() > 0 {
 		r := rs.Pop().(ints)
 		mergeTwo(c, &dst, src, r)
-		c.Swap()
 		dst, src = src, dst
 		dst = dst.Slice(0, 0)
 	}
@@ -100,7 +99,7 @@ func mergeTwo(c *sortCounter, into *ints, a, b ints) {
 	for i < m && j < n {
 		x := a.Peek(i)
 		y := b.Peek(j)
-		if x <= y {
+		if c.Less() && x <= y {
 			into.Push(x)
 			i++
 		} else {
@@ -216,6 +215,15 @@ func (sort tournamentSort) remove(s ints, sentinel int) {
 		} else {
 			i = j + 1
 		}
+	}
+}
+
+func (tournamentSort) servers() []serveY {
+	return []serveY{
+		serveAccess{},
+		serveCompare{},
+		serveMicrosecondLapse{},
+		serveWeightedSwap{},
 	}
 }
 
