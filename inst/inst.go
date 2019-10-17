@@ -17,11 +17,30 @@ type Counter struct {
 	state State
 }
 
-func (c *Counter) Do(kind Kind) {
+func NewCounter() *Counter {
+	return new(Counter)
+}
+
+func (c *Counter) Do(kind Kind) bool {
+	if c == nil {
+		return true
+	}
 	c.state[kind]++
+	return true
+}
+
+func (c *Counter) Use(kind Kind, n uint) bool {
+	if c == nil {
+		return true
+	}
+	c.state[kind] += n
+	return true
 }
 
 func (c *Counter) State() State {
+	if c == nil {
+		return State{}
+	}
 	return c.state
 }
 
