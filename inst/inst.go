@@ -46,4 +46,8 @@ func (c *Counter) State() State {
 
 type State [NumKinds]uint
 
+func (state State) Get(kind Kind) uint {
+	return state[kind]
+}
+
 // TODO: State -> map[string]uint ?
