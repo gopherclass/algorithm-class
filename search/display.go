@@ -3,6 +3,7 @@ package main
 import (
 	"algorithm-class/inst"
 	avl "algorithm-class/search/AVL-tree"
+	binaryTree "algorithm-class/search/binary-tree"
 	rb "algorithm-class/search/red-black-tree"
 	"time"
 )
@@ -55,6 +56,33 @@ func (avltree) Do(timer *Timer, input []int) inst.State {
 }
 
 func (avltree) Illusts() []Illust {
+	return []Illust{
+		DisplayIndirect{},
+		DisplayTime{},
+	}
+}
+
+type binarytree struct{}
+
+func (binarytree) Name() string {
+	return "Binary tree"
+}
+
+func (binarytree) Do(timer *Timer, input []int) inst.State {
+	timer.Stop()
+	tree := binaryTree.NewTree()
+	for _, x := range input {
+		tree.Insert(nil, x)
+	}
+	ic := inst.NewCounter()
+	timer.Start()
+	for _, x := range input {
+		tree.Search(ic, x)
+	}
+	return ic.State()
+}
+
+func (binarytree) Illusts() []Illust {
 	return []Illust{
 		DisplayIndirect{},
 		DisplayTime{},

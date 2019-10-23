@@ -8,8 +8,9 @@ import (
 )
 
 var runnerMap = map[string]DrawRunner{
-	"red-black": redblacktree{},
-	"avl":       avltree{},
+	"red-black":   redblacktree{},
+	"avl":         avltree{},
+	"binary-tree": binarytree{},
 }
 
 func proc() error {
