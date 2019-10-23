@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
+	"strings"
 )
 
 var runnerMap = map[string]DrawRunner{
@@ -21,7 +23,7 @@ func proc() error {
 	flag.Parse()
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "need runner")
+		printUsage()
 		os.Exit(0)
 	}
 	draw := newDrawRunner(defaultStyle, size)
@@ -40,6 +42,16 @@ func proc() error {
 		draw.drawAux()
 	}
 	return draw.store()
+}
+
+func printUsage() {
+	names := make([]string, 0, len(runnerMap))
+	for name := range runnerMap {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	fmt.Fprintln(os.Stderr, "need runner")
+	fmt.Fprintln(os.Stderr, "supported runners =", strings.Join(names, ", "))
 }
 
 func main() {
