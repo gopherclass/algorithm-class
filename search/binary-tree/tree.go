@@ -23,18 +23,18 @@ func (t *Tree) Insert(ic *inst.Counter, v int) {
 }
 
 func binarySearch(ic *inst.Counter, n *Node, v int) bool {
-	for ic.Do(inst.Compare) && n != nil {
-		ic.Do(inst.Compare)
-		ic.Do(inst.Indirect)
+	for ic.Once(inst.Compare) && n != nil {
+		ic.Once(inst.Compare)
+		ic.Once(inst.Indirect)
 		if v < n.Value {
-			ic.Do(inst.Indirect)
+			ic.Once(inst.Indirect)
 			n = n.Left
 			continue
 		}
-		ic.Do(inst.Indirect)
-		ic.Do(inst.Compare)
+		ic.Once(inst.Indirect)
+		ic.Once(inst.Compare)
 		if v > n.Value {
-			ic.Do(inst.Indirect)
+			ic.Once(inst.Indirect)
 			n = n.Right
 			continue
 		}
@@ -49,17 +49,17 @@ type Node struct {
 }
 
 func insert(ic *inst.Counter, n *Node, v int) *Node {
-	ic.Do(inst.Compare)
+	ic.Once(inst.Compare)
 	if n == nil {
 		return &Node{Value: v}
 	}
-	ic.Do(inst.Compare)
+	ic.Once(inst.Compare)
 	if v <= n.Value {
-		ic.Use(inst.Indirect, 2)
+		ic.Do(inst.Indirect, 2)
 		n.Left = insert(ic, n.Left, v)
 		return n
 	}
-	ic.Use(inst.Indirect, 2)
+	ic.Do(inst.Indirect, 2)
 	n.Right = insert(ic, n.Right, v)
 	return n
 }
