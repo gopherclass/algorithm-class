@@ -8,11 +8,22 @@ import (
 )
 
 func TestTree(t *testing.T) {
-	tree := NewTree()
+	testn(t, 100)
+}
 
+func TestSampleTree(t *testing.T) {
+	tree := NewTree()
+	for _, v := range []int{2, 1, 8, 9, 7, 3, 6, 4, 5} {
+		tree.Insert(nil, v)
+	}
+	checkTree(t, tree)
+}
+
+func testn(t *testing.T, n int) {
+	tree := NewTree()
 	rand.Seed(uint64(time.Now().UnixNano()))
-	for i := 0; i < 10000; i++ {
-		tree.Insert(nil, rand.Int())
+	for i := 1; i <= n; i++ {
+		tree.Insert(nil, 1+rand.Intn(n))
 	}
 	checkTree(t, tree)
 }

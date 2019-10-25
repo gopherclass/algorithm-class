@@ -11,8 +11,8 @@ func TestTree(t *testing.T) {
 	tree := NewTree()
 
 	rand.Seed(uint64(time.Now().UnixNano()))
-	for i := 0; i < 10000; i++ {
-		tree.Insert(nil, rand.Int())
+	for i := 0; i < 100; i++ {
+		tree.Insert(nil, rand.Intn(100))
 	}
 	checkTree(t, tree)
 }
