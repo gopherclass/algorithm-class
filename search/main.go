@@ -18,8 +18,12 @@ var runnerMap = map[string]DrawRunner{
 func proc() error {
 	var size int
 	var aux bool
+	var iteration uint
+	var scale string
 	flag.IntVar(&size, "size", 1000, "size")
 	flag.BoolVar(&aux, "aux", true, "draw auxiliary lines")
+	flag.UintVar(&iteration, "iter", 10, "iteration")
+	flag.StringVar(&scale, "scale", "", "scale: log, square")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) == 0 {
@@ -27,13 +31,20 @@ func proc() error {
 		os.Exit(0)
 	}
 	draw := newDrawRunner(defaultStyle, size)
+	var options drawOptions
+	switch scale {
+	case "log":
+		options.scale = logScale{}
+	case "square":
+		options.scale = squareScale{}
+	}
 	for _, arg := range args {
 		runner, ok := runnerMap[arg]
 		if !ok {
 			fmt.Fprintf(os.Stderr, "unknown runner %s\n", arg)
 			os.Exit(0)
 		}
-		err := draw.draw(runner)
+		err := draw.draw(runner, iteration, &options)
 		if err != nil {
 			return err
 		}

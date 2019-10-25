@@ -91,8 +91,8 @@ func (binarytree) Illusts() []Illust {
 
 type DisplayIndirect struct{}
 
-func (DisplayIndirect) Fx(perf perf) float64 {
-	return float64(perf.state.Get(inst.Indirect))
+func (DisplayIndirect) Fx(perf perfStat) float64 {
+	return float64(perf.averageInst(inst.Indirect))
 }
 
 func (DisplayIndirect) Legend(cls perfClass) string {
@@ -105,8 +105,8 @@ func (DisplayIndirect) Tag() string {
 
 type DisplayTime struct{}
 
-func (DisplayTime) Fx(perf perf) float64 {
-	return float64(convMicroseconds(perf.elapse))
+func (DisplayTime) Fx(perf perfStat) float64 {
+	return float64(convMicroseconds(perf.averageElapse()))
 }
 
 func convNanoseconds(d time.Duration) int64  { return int64(d) }

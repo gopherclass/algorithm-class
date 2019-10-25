@@ -16,14 +16,43 @@ type perf struct {
 	elapse time.Duration
 }
 
+type perfStat struct {
+	state     inst.State
+	elapse    time.Duration
+	iteration uint
+}
+
+func (s *perfStat) averageInst(kind inst.Kind) float64 {
+	if s.iteration == 0 {
+		return 0.0
+	}
+	n := s.state.Get(kind)
+	return float64(n) / float64(s.iteration)
+}
+
+func (s *perfStat) averageElapse() time.Duration {
+	if s.iteration == 0 {
+		return time.Duration(0)
+	}
+	return s.elapse / time.Duration(s.iteration)
+}
+
+func (s perfStat) addperf(perf perf) perfStat {
+	for kind, n := range perf.state {
+		s.state[kind] += n
+	}
+	s.elapse += perf.elapse
+	return s
+}
+
 type perfClass struct {
 	runner     Runner
 	inputClass string
-	perfs      []perf
+	stats      []perfStat
 }
 
 func (c perfClass) Size() int {
-	return len(c.perfs)
+	return len(c.stats)
 }
 
 type sizedInput interface {
@@ -32,16 +61,21 @@ type sizedInput interface {
 	input(size int) []int
 }
 
-func timeitClass(runner Runner, size int, sizedInput sizedInput) perfClass {
-	perfs := make([]perf, 0, size)
+func timeitClass(runner Runner, size int, sizedInput sizedInput, iteration uint) perfClass {
+	stats := make([]perfStat, 0, size)
 	for i := 0; i <= size; i++ {
-		perf := timeit(runner, sizedInput.input(size))
-		perfs = append(perfs, perf)
+		var stat perfStat
+		for it := uint(0); it <= iteration; it++ {
+			perf := timeit(runner, sizedInput.input(i))
+			stat = stat.addperf(perf)
+		}
+		stat.iteration = iteration
+		stats = append(stats, stat)
 	}
 	return perfClass{
 		runner:     runner,
 		inputClass: sizedInput.class(),
-		perfs:      perfs,
+		stats:      stats,
 	}
 }
 
@@ -55,7 +89,7 @@ func timeit(runner Runner, input []int) perf {
 	}
 }
 
-func timeitAll(runner Runner, size int) []perfClass {
+func timeitAll(runner Runner, size int, iteration uint) []perfClass {
 	buf := make([]int, 0, size)
 	var inputClasses = []sizedInput{
 		fuzzInput{buf: buf},
@@ -65,7 +99,7 @@ func timeitAll(runner Runner, size int) []perfClass {
 	}
 	perfs := make([]perfClass, 0, len(inputClasses))
 	for _, inputClass := range inputClasses {
-		perfcls := timeitClass(runner, size, inputClass)
+		perfcls := timeitClass(runner, size, inputClass, iteration)
 		perfs = append(perfs, perfcls)
 	}
 	return perfs

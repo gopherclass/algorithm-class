@@ -31,17 +31,17 @@ type DrawRunner interface {
 }
 
 type Illust interface {
-	Fx(perf) float64
+	Fx(perfStat) float64
 	Legend(perfClass) string
 	Tag() string
 }
 
 func toXYs(cls perfClass, il Illust) plotter.XYs {
-	if len(cls.perfs) == 0 {
+	if cls.Size() == 0 {
 		return nil
 	}
-	xylist := make(plotter.XYs, len(cls.perfs))
-	for i, perf := range cls.perfs {
+	xylist := make(plotter.XYs, cls.Size())
+	for i, perf := range cls.stats {
 		xylist[i] = plotter.XY{
 			X: float64(i),
 			Y: il.Fx(perf),
@@ -153,9 +153,13 @@ func (v *drawLine) drawAux() {
 		pl.Legend.Add(legend, o)
 	}
 	drawfx("y = x", identityFunc)
-	drawfx("y = x²", quadraticFunc)
 	drawfx("y = xlog(x)", xlogxFunc)
-	drawfx("y = 2xlog(x)", bigO(2, xlogxFunc))
+	drawfx("y = x²", quadraticFunc)
+	// drawfx("y = 2xlog(x)", bigO(2, xlogxFunc))
+}
+
+func (v *drawLine) plot() *plot.Plot {
+	return v.pl
 }
 
 func identityFunc(x float64) float64 { return x }
@@ -195,11 +199,15 @@ func newDrawRunner(st *presentationStyle, size int) *drawRunner {
 	}
 }
 
-func (o *drawRunner) draw(runner DrawRunner) error {
+type drawOptions struct {
+	scale plot.Normalizer
+}
+
+func (o *drawRunner) draw(runner DrawRunner, iteration uint, options *drawOptions) error {
 	o.runners = append(o.runners, runner)
-	for _, cls := range timeitAll(runner, o.size) {
+	for _, cls := range timeitAll(runner, o.size, iteration) {
 		for _, il := range runner.Illusts() {
-			err := o.drawClass(runner, cls, il)
+			err := o.drawClass(runner, cls, il, options)
 			if err != nil {
 				return err
 			}
@@ -208,13 +216,13 @@ func (o *drawRunner) draw(runner DrawRunner) error {
 	return nil
 }
 
-func (o *drawRunner) drawClass(runner Runner, cls perfClass, il Illust) error {
+func (o *drawRunner) drawClass(runner Runner, cls perfClass, il Illust, options *drawOptions) error {
 	tag := il.Tag()
 	key := classTag{cls.inputClass, tag}
 	draw := o.classMap[key]
 	if draw == nil {
 		var err error
-		draw, err = o.newPlot(cls, tag)
+		draw, err = o.newPlot(cls, tag, options)
 		if err != nil {
 			return err
 		}
@@ -226,7 +234,7 @@ func (o *drawRunner) drawClass(runner Runner, cls perfClass, il Illust) error {
 	})
 }
 
-func (o *drawRunner) newPlot(cls perfClass, tag string) (*drawLine, error) {
+func (o *drawRunner) newPlot(cls perfClass, tag string, options *drawOptions) (*drawLine, error) {
 	pr := presentation{
 		title:     presentationTitle(cls.inputClass, tag),
 		xAxisText: "Size",
@@ -236,12 +244,22 @@ func (o *drawRunner) newPlot(cls perfClass, tag string) (*drawLine, error) {
 	if err != nil {
 		return nil, err
 	}
+	if options != nil && options.scale != nil {
+		pl.Y.Scale = options.scale
+	}
 	return newDrawLine(pl), nil
 }
 
 func (o *drawRunner) drawAux() {
 	for _, draw := range o.classMap {
 		draw.drawAux()
+	}
+}
+
+func (o *drawRunner) setScale(scale plot.Normalizer) {
+	for _, draw := range o.classMap {
+		pl := draw.plot()
+		pl.Y.Scale = scale
 	}
 }
 
@@ -274,4 +292,22 @@ func directoryName(runners []DrawRunner) string {
 		s[i] = runner.Name()
 	}
 	return strings.Join(s, ", ")
+}
+
+type squareScale struct{}
+
+func (squareScale) Normalize(min, max, x float64) float64 {
+	a := (x - min) / (max - min)
+	b := (x + min) / (max + min)
+	return a * b
+}
+
+type logScale struct{}
+
+func (logScale) Normalize(min, max, x float64) float64 {
+	if min <= 0 || max <= 0 || x <= 0 {
+		return 0.0
+	}
+	logMin := math.Log(min)
+	return (math.Log(x) - logMin) / (math.Log(max) - logMin)
 }
