@@ -73,34 +73,30 @@ func insert(ic *inst.Counter, r *Node, v int) *Node {
 		ic.Do(inst.Indirect, 2)
 		r.Right = insert(ic, r.Right, v)
 	}
-	return resolve(ic, r)
+	return resolve(ic, r, v)
 }
 
-func resolve(ic *inst.Counter, r *Node) *Node {
-	ic.Do(inst.Indirect)
-	ic.Do(inst.Indirect)
-	lh, rh := getHeight(ic, r.Left), getHeight(ic, r.Right)
-	skew := lh - rh
-	if ic.Do(inst.Compare) && -1 <= skew && ic.Do(inst.Compare) && skew <= 1 {
-		ic.Do(inst.Indirect)
-		r.Height = max(ic, lh, rh)
-		return r
+func resolve(ic *inst.Counter, r *Node, v int) *Node {
+	ic.Do(inst.Indirect, 2)
+	w := getHeight(ic, r.Right) - getHeight(ic, r.Left)
+	ic.Once(inst.Compare)
+	if 2 <= w {
+		ic.Once(inst.Compare)
+		if v <= r.Right.Value {
+			return rotrl(ic, r)
+		}
+		return rotl(ic, r)
 	}
-	ic.Do(inst.Compare)
-	if lh > rh {
-		ic.Use(inst.Indirect, 4)
-		ic.Do(inst.Compare)
-		if getHeight(ic, r.Left.Left) > getHeight(ic, r.Left.Right) {
+	ic.Once(inst.Compare)
+	if w <= -2 {
+		ic.Once(inst.Compare)
+		if v <= r.Left.Value {
 			return rotr(ic, r)
 		}
 		return rotlr(ic, r)
 	}
-	ic.Use(inst.Indirect, 4)
-	ic.Do(inst.Compare)
-	if getHeight(ic, r.Right.Left) > getHeight(ic, r.Right.Right) {
-		return rotl(ic, r)
-	}
-	return rotrl(ic, r)
+	calcHeight(ic, r)
+	return r
 }
 
 func max(ic *inst.Counter, x, y int) int {
