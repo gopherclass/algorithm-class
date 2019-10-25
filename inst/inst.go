@@ -21,7 +21,7 @@ func NewCounter() *Counter {
 	return new(Counter)
 }
 
-func (c *Counter) Do(kind Kind) bool {
+func (c *Counter) Once(kind Kind) bool {
 	if c == nil {
 		return true
 	}
@@ -29,7 +29,7 @@ func (c *Counter) Do(kind Kind) bool {
 	return true
 }
 
-func (c *Counter) Use(kind Kind, n uint) bool {
+func (c *Counter) Do(kind Kind, n uint) bool {
 	if c == nil {
 		return true
 	}
@@ -49,5 +49,3 @@ type State [NumKinds]uint
 func (state State) Get(kind Kind) uint {
 	return state[kind]
 }
-
-// TODO: State -> map[string]uint ?
