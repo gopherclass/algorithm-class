@@ -39,18 +39,18 @@ func (t *Tree) Insert(ic *inst.Counter, v int) {
 }
 
 func binarySearch(ic *inst.Counter, n *Node, v int) bool {
-	for ic.Do(inst.Compare) && n != nil {
-		ic.Do(inst.Compare)
-		ic.Do(inst.Indirect)
+	for ic.Once(inst.Compare) && n != nil {
+		ic.Once(inst.Compare)
+		ic.Once(inst.Indirect)
 		if v < n.Value {
-			ic.Do(inst.Indirect)
+			ic.Once(inst.Indirect)
 			n = n.Left
 			continue
 		}
-		ic.Do(inst.Indirect)
-		ic.Do(inst.Compare)
+		ic.Once(inst.Indirect)
+		ic.Once(inst.Compare)
 		if v > n.Value {
-			ic.Do(inst.Indirect)
+			ic.Once(inst.Indirect)
 			n = n.Right
 			continue
 		}
@@ -60,17 +60,17 @@ func binarySearch(ic *inst.Counter, n *Node, v int) bool {
 }
 
 func insert(ic *inst.Counter, r *Node, v int) *Node {
-	ic.Do(inst.Compare)
+	ic.Once(inst.Compare)
 	if r == nil {
-		return &Node{Value: v}
+		return &Node{Value: v, Height: 1}
 	}
-	ic.Do(inst.Compare)
-	ic.Do(inst.Indirect)
+	ic.Once(inst.Compare)
+	ic.Once(inst.Indirect)
 	if v <= r.Value {
-		ic.Use(inst.Indirect, 2)
+		ic.Do(inst.Indirect, 2)
 		r.Left = insert(ic, r.Left, v)
 	} else {
-		ic.Use(inst.Indirect, 2)
+		ic.Do(inst.Indirect, 2)
 		r.Right = insert(ic, r.Right, v)
 	}
 	return resolve(ic, r)
@@ -104,7 +104,7 @@ func resolve(ic *inst.Counter, r *Node) *Node {
 }
 
 func max(ic *inst.Counter, x, y int) int {
-	ic.Do(inst.Compare)
+	ic.Once(inst.Compare)
 	if x < y {
 		return y
 	}
@@ -112,32 +112,32 @@ func max(ic *inst.Counter, x, y int) int {
 }
 
 func getHeight(ic *inst.Counter, r *Node) int {
-	ic.Do(inst.Compare)
+	ic.Once(inst.Compare)
 	if r == nil {
 		return 0
 	}
-	ic.Do(inst.Indirect)
+	ic.Once(inst.Indirect)
 	return r.Height
 }
 
 func recalcHeight(ic *inst.Counter, r *Node) {
-	ic.Use(inst.Indirect, 2)
+	ic.Do(inst.Indirect, 2)
 	calcHeight(ic, r.Left)
 	calcHeight(ic, r.Right)
 	calcHeight(ic, r)
 }
 
 func calcHeight(ic *inst.Counter, r *Node) {
-	ic.Do(inst.Compare)
+	ic.Once(inst.Compare)
 	if r == nil {
 		return
 	}
-	ic.Use(inst.Indirect, 3)
-	r.Height = max(ic, getHeight(ic, r.Left), getHeight(ic, r.Right))
+	ic.Do(inst.Indirect, 3)
+	r.Height = 1 + max(ic, getHeight(ic, r.Left), getHeight(ic, r.Right))
 }
 
 func rotr(ic *inst.Counter, x *Node) *Node {
-	ic.Use(inst.Indirect, 4)
+	ic.Do(inst.Indirect, 4)
 	r := x.Left
 	x.Left = r.Right
 	r.Right = x
@@ -146,7 +146,7 @@ func rotr(ic *inst.Counter, x *Node) *Node {
 }
 
 func rotl(ic *inst.Counter, x *Node) *Node {
-	ic.Use(inst.Indirect, 4)
+	ic.Do(inst.Indirect, 4)
 	r := x.Right
 	x.Right = r.Left
 	r.Left = x
@@ -155,7 +155,7 @@ func rotl(ic *inst.Counter, x *Node) *Node {
 }
 
 func rotlr(ic *inst.Counter, x *Node) *Node {
-	ic.Use(inst.Indirect, 8)
+	ic.Do(inst.Indirect, 8)
 	r := x.Left.Right
 	x.Left.Right = r.Left
 	r.Left = x.Left
@@ -166,7 +166,7 @@ func rotlr(ic *inst.Counter, x *Node) *Node {
 }
 
 func rotrl(ic *inst.Counter, x *Node) *Node {
-	ic.Use(inst.Indirect, 8)
+	ic.Do(inst.Indirect, 8)
 	r := x.Right.Left
 	x.Right.Left = r.Right
 	r.Right = x.Right
