@@ -19,6 +19,14 @@ func TestSampleTree(t *testing.T) {
 	checkTree(t, tree)
 }
 
+func TestExam(t *testing.T) {
+	tree := NewTree()
+	for _, v := range []int{66, 78, 80, 25, 20, 61, 19, 30, 34} {
+		tree.Insert(nil, v)
+	}
+	checkTree(t, tree)
+}
+
 func testn(t *testing.T, n int) {
 	tree := NewTree()
 	rand.Seed(uint64(time.Now().UnixNano()))
