@@ -162,7 +162,7 @@ func whereLook(a int, b int) uint {
 
 func rejectCounter(ic *inst.Counter) {
 	if ic != nil {
-		panic(" is not yet implemented")
+		panic("counter is not yet implemented")
 	}
 }
 

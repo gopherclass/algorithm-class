@@ -79,6 +79,6 @@ func lookBit(n int, i uint) bool {
 
 func rejectCounter(ic *inst.Counter) {
 	if ic != nil {
-		panic(" is not yet implemented")
+		panic("counter is not yet implemented")
 	}
 }
