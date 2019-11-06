@@ -4,7 +4,11 @@ import (
 	"algorithm-class/inst"
 	avl "algorithm-class/search/AVL-tree"
 	binaryTree "algorithm-class/search/binary-tree"
+	"algorithm-class/search/digital-search-tree"
+	"algorithm-class/search/patricia-tree"
+	"algorithm-class/search/radix-trie"
 	rb "algorithm-class/search/red-black-tree"
+	"fmt"
 	"time"
 )
 
@@ -87,6 +91,81 @@ func (binarytree) Illusts() []Illust {
 		DisplayIndirect{},
 		DisplayTime{},
 	}
+}
+
+type treeLike interface {
+	Search(ic *inst.Counter, v int) bool
+
+	Insert(ic *inst.Counter, v int)
+}
+
+func spin(tree treeLike, timer *Timer, input []int) inst.State {
+	timer.Stop()
+	for _, x := range input {
+		tree.Insert(nil, x)
+	}
+	ic := inst.NewCounter()
+	timer.Start()
+	for _, x := range input {
+		tree.Search(ic, x)
+	}
+	return ic.State()
+}
+
+type digitaltree struct{}
+
+func (digitaltree) Name() string { return fmt.Sprintf("Digital Search Tree (%d bits)", treeBits+1) }
+
+func (digitaltree) Illusts() []Illust {
+	return []Illust{
+		DisplayIndirect{},
+		DisplayTime{},
+	}
+}
+
+func (digitaltree) Do(timer *Timer, input []int) inst.State {
+	tree := digital.NewTree(treeBits)
+	return spin(tree, timer, input)
+}
+
+type radixtree struct{}
+
+func (radixtree) Name() string { return fmt.Sprintf("Radix Tree (%d bits)", treeBits+1) }
+
+func (radixtree) Illusts() []Illust {
+	return []Illust{
+		DisplayIndirect{},
+		DisplayTime{},
+	}
+}
+
+func (radixtree) Do(timer *Timer, input []int) inst.State {
+	tree := radix.NewTree(treeBits)
+	incAll(input)
+	return spin(tree, timer, input)
+}
+
+func incAll(input []int) {
+	for i := range input {
+		input[i]++
+	}
+}
+
+type patriciatree struct{}
+
+func (patriciatree) Name() string { return "Patricia Tree" }
+
+func (patriciatree) Illusts() []Illust {
+	return []Illust{
+		DisplayIndirect{},
+		DisplayTime{},
+	}
+}
+
+func (patriciatree) Do(timer *Timer, input []int) inst.State {
+	tree := patricia.NewTree()
+	incAll(input)
+	return spin(tree, timer, input)
 }
 
 type DisplayIndirect struct{}

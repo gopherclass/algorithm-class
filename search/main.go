@@ -7,12 +7,18 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"unsafe"
 )
+
+var treeBits uint
 
 var runnerMap = map[string]DrawRunner{
 	"red-black":   redblacktree{},
 	"avl":         avltree{},
 	"binary-tree": binarytree{},
+	"patricia":    patriciatree{},
+	"digital":     digitaltree{},
+	"radix":       radixtree{},
 }
 
 func proc() error {
@@ -20,10 +26,12 @@ func proc() error {
 	var aux bool
 	var iteration uint
 	var scale string
-	flag.IntVar(&size, "size", 1000, "size")
+	flag.IntVar(&size, "size", 500, "size")
 	flag.BoolVar(&aux, "aux", true, "draw auxiliary lines")
 	flag.UintVar(&iteration, "iter", 10, "iteration")
 	flag.StringVar(&scale, "scale", "", "scale: log, square")
+	flag.UintVar(&treeBits, "bits", uint(unsafe.Sizeof(int(0))*8-2),
+		"tree bits")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) == 0 {

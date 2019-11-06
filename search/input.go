@@ -9,6 +9,10 @@ import (
 
 var rngSource = rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
 
+func effectiveBits(n int) int {
+	return n & ^(^0 << treeBits)
+}
+
 type fuzzInput struct {
 	buf []int
 }
@@ -20,7 +24,7 @@ func (fuzzInput) class() string {
 func (v fuzzInput) input(n int) []int {
 	s := v.buf[:n]
 	for i := range s {
-		s[i] = rngSource.Int()
+		s[i] = effectiveBits(rngSource.Int())
 	}
 	return s
 }
