@@ -94,7 +94,7 @@ func inorder(buf *[]traverseNode, slope *[]string, x, y *Node) {
 		inorder(buf, slope, x.Left, x)
 		*slope = (*slope)[:len(*slope)-1]
 	}
-	if !x.isInternal() {
+	if !x.isInternal(nil) {
 		*buf = append(*buf, traverseNode{x, y, copySlope(*slope)})
 	}
 	if x.Right != nil {

@@ -58,6 +58,7 @@ func search(ic *inst.Counter, r *Node, value int, look uint) bool {
 }
 
 func insert(ic *inst.Counter, r *Node, value int, look uint) *Node {
+	const overlook = ^uint(0)
 	rejectCounter(ic)
 	rejectSentinel(value)
 
@@ -66,8 +67,11 @@ func insert(ic *inst.Counter, r *Node, value int, look uint) *Node {
 			Value: value,
 		}
 	}
-	if !r.isInternal() {
+	if !r.isInternal(ic) {
 		if r.Value == value {
+			return r
+		}
+		if look == overlook {
 			return r
 		}
 		z := *r
@@ -93,7 +97,7 @@ func lookBit(n int, i uint) bool {
 
 func rejectCounter(ic *inst.Counter) {
 	if ic != nil {
-		panic(" is not yet implemented")
+		panic("counter is not yet implemented")
 	}
 }
 
