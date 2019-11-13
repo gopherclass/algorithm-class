@@ -1,5 +1,3 @@
-//+build mage
-
 package main
 
 import (

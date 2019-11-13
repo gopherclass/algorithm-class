@@ -1,4 +1,4 @@
-//+build mage
+//+build ignore
 
 package main
 
@@ -17,7 +17,7 @@ type aqsort struct {
 	poison    []int
 }
 
-func (a *aqsort) aqsort(sorter sorter, n int) []int {
+func (a *aqsort) aqsort(sorter sequenceSorter, n int) []int {
 	a.gas = n - 1
 	a.nsolid = 0
 	a.candidate = 0
@@ -27,7 +27,8 @@ func (a *aqsort) aqsort(sorter sorter, n int) []int {
 		a.poison[i] = a.gas
 		a.ptr[i] = i
 	}
-	sorter.sort(a)
+	var c sortCounter
+	sorter.sort(a, a, &c)
 	return a.poison
 }
 
@@ -35,12 +36,16 @@ func (a *aqsort) Len() int {
 	return len(a.poison)
 }
 
+func (*aqsort) Set(i int, x interface{}) { panic("Set not implemented") }
+func (*aqsort) Peek(i int) interface{}   { panic("Peek not implemented") }
+func (*aqsort) Slice(i, j int) sequence  { panic("Slice not implemented") }
+
 func (a *aqsort) Swap(i, j int) {
 	a.ptr[i], a.ptr[j] = a.ptr[j], a.ptr[i]
 }
 
-func (a *aqsort) Less(i, j int) bool {
-	x, y := a.ptr[i], a.ptr[j]
+func (a *aqsort) Less(ix, iy interface{}) bool {
+	x, y := ix.(int), iy.(int)
 	if a.poison[x] == a.gas && a.poison[y] == a.gas {
 		if x == a.candidate {
 			a.freeze(x)
@@ -56,16 +61,12 @@ func (a *aqsort) Less(i, j int) bool {
 	return a.poison[x] <= a.poison[y]
 }
 
-func (a *aqsort) Peek(i int) int {
-	panic("unimplemented Peek")
-}
-
 func (a *aqsort) freeze(i int) {
 	a.poison[i] = a.nsolid
 	a.nsolid++
 }
 
-func antiqsort(sorter sorter, n int) []int {
+func antiqsort(sorter sequenceSorter, n int) []int {
 	var a aqsort
 	return a.aqsort(sorter, n)
 
