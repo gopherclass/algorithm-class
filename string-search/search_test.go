@@ -48,25 +48,32 @@ func TestNaiveSearchProblem1(t *testing.T) {
 }
 
 func TestKMPPrecomputedTableProblem2(t *testing.T) {
-	t.Log(KMPPrecomputedTable(nil, "ababca"))
-	t.Log(KMPPrecomputedTable(nil, "abababca"))
-	t.Log(KMPPrecomputedTable(nil, "abcbabcbabc"))
-	t.Log(KMPPrecomputedTable(nil, "abracadabra"))
+	logTable := func(pat string) {
+		next := KMPPrecomputedTable(nil, pat)
+		t.Logf("%s: %v", pat, next)
+	}
+	logTable("ababca")
+	logTable("abababca")
+	logTable("abcbabcbabc")
+	logTable("abracadabra")
 	ensureTermination(t)
 }
 
 func TestKMPImprovedPrecomputedTableProblem3(t *testing.T) {
-	t.Log(getKMPImprovedPrecomputedTable(nil, "ababca"))
-	t.Log(getKMPImprovedPrecomputedTable(nil, "abababca"))
-	t.Log(getKMPImprovedPrecomputedTable(nil, "abcbabcbabc"))
-	t.Log(getKMPImprovedPrecomputedTable(nil, "abracadabra"))
+	getKMPImprovedPrecomputedTable := func(ic *inst.Counter, pat string) []int {
+		next := KMPPrecomputedTable(ic, pat)
+		next = KMPImprovedPrecomputedTable(ic, pat, next)
+		return next
+	}
+	logTable := func(pat string) {
+		next := getKMPImprovedPrecomputedTable(nil, pat)
+		t.Logf("%s: %v", pat, next)
+	}
+	logTable("ababca")
+	logTable("abababca")
+	logTable("abcbabcbabc")
+	logTable("abracadabra")
 	ensureTermination(t)
-}
-
-func getKMPImprovedPrecomputedTable(ic *inst.Counter, pat string) []int {
-	next := KMPPrecomputedTable(ic, pat)
-	next = KMPImprovedPrecomputedTable(ic, pat, next)
-	return next
 }
 
 func TestKMPSearchProblem4(t *testing.T) {
@@ -74,6 +81,10 @@ func TestKMPSearchProblem4(t *testing.T) {
 	pat := "ababca"
 	logCompare(t, KMPSearch, str, pat)
 	ensureTermination(t)
+}
+
+func TestImprovoedKMPSearch(t *testing.T) {
+	testSearchFunc(t, KMPImprovedSearch, alphabet)
 }
 
 func TestKMPSearch(t *testing.T) {
