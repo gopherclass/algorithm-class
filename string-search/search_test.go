@@ -139,6 +139,12 @@ func presentedBoyerMooreSearch(ic *inst.Counter, str, pat string) int {
 	return i + 1
 }
 
+func TestBoyerMooreSearchProblem5(t *testing.T) {
+	str := "STRING STARTING CONSISTING"
+	pat := "STING"
+	logCompare(t, BoyerMooreSearch, str, pat)
+}
+
 func TestRabinKarpPower(t *testing.T) {
 	require.Equal(t, _D%_Q, RabinKarpPowerHash(2))
 	require.Equal(t, _D*_D%_Q, RabinKarpPowerHash(3))
