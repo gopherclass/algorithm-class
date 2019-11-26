@@ -76,6 +76,32 @@ func TestKMPImprovedPrecomputedTableProblem3(t *testing.T) {
 	ensureTermination(t)
 }
 
+func TestKMPImprovedPrecomputedTableProblem3Once(t *testing.T) {
+	getKMPImprovedPrecomputedTable := func(ic *inst.Counter, pat string) []int {
+		next := KMPPrecomputedTable(ic, pat)
+		next = KMPImprovedPrecomputedTableOnce(ic, pat, next)
+		return next
+	}
+	logTable := func(pat string) {
+		next := getKMPImprovedPrecomputedTable(nil, pat)
+		t.Logf("%s: %v", pat, next)
+	}
+	logTable("ababca")
+	logTable("abababca")
+	logTable("abcbabcbabc")
+	logTable("abracadabra")
+	ensureTermination(t)
+}
+
+func KMPImprovedPrecomputedTableOnce(ic *inst.Counter, pat string, next []int) []int {
+	for i := range next {
+		if next[i] >= 0 && pat[i] == pat[next[i]] {
+			next[i] = next[next[i]]
+		}
+	}
+	return next
+}
+
 func TestKMPSearchProblem4(t *testing.T) {
 	str := "ababacabcbababcacacaababca"
 	pat := "ababca"

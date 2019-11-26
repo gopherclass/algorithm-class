@@ -46,7 +46,7 @@ func KMPPrecomputedTable(ic *inst.Counter, pat string) []int {
 
 func KMPImprovedPrecomputedTable(ic *inst.Counter, pat string, next []int) []int {
 	for i := range next {
-		for next[i] >= 0 && pat[i] == pat[next[i]] {
+		if next[i] >= 0 && pat[i] == pat[next[i]] {
 			next[i] = next[next[i]]
 		}
 	}
