@@ -1,4 +1,4 @@
-package randomize
+package random
 
 import (
 	"strings"
