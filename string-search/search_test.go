@@ -52,6 +52,7 @@ func TestKMPPrecomputedTableProblem2(t *testing.T) {
 		next := KMPPrecomputedTable(nil, pat)
 		t.Logf("%s: %v", pat, next)
 	}
+	logTable("aaaaa")
 	logTable("ababca")
 	logTable("abababca")
 	logTable("abcbabcbabc")
@@ -69,6 +70,7 @@ func TestKMPImprovedPrecomputedTableProblem3(t *testing.T) {
 		next := getKMPImprovedPrecomputedTable(nil, pat)
 		t.Logf("%s: %v", pat, next)
 	}
+	logTable("aaaaa")
 	logTable("ababca")
 	logTable("abababca")
 	logTable("abcbabcbabc")
