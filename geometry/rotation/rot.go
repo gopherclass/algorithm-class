@@ -26,3 +26,7 @@ func Intersect(r0, r1 plane.Segment) bool {
 	return Dir(r0.Min, r0.Max, r1.Min)*Dir(r0.Min, r0.Max, r1.Max) <= 0 &&
 		Dir(r1.Min, r1.Max, r0.Min)*Dir(r1.Min, r1.Max, r0.Max) <= 0
 }
+
+func StrictlyIntersect(r0, r1 plane.Segment) bool {
+	panic("not yet implemented")
+}
