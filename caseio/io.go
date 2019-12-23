@@ -27,6 +27,12 @@ func (r *Reader) Ints(n int) []int {
 	return s
 }
 
+func (r *Reader) Int64() int64 {
+	n, err := strconv.ParseInt(r.String(), 10, 64)
+	r.check(err)
+	return n
+}
+
 func (r *Reader) String() string {
 	buf, err := r.Scan(r.IsSeparating)
 	r.check(err)
