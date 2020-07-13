@@ -84,6 +84,7 @@ func (i *internalProcess) Start() error {
 	i.w = iw
 	i.r = or
 	go func() {
+		// TODO: Exit code도 받고 panic도 처리하기
 		i.code.Main(ir, ow)
 	}()
 	return nil
