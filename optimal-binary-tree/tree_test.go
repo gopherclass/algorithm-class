@@ -16,6 +16,23 @@ func TestNewPrior(t *testing.T) {
 	t.Fail()
 }
 
+func TestExam(t *testing.T) {
+	s := []float64{0.02, 0.26, 0.12, 0.21, 0.39}
+	r := NewPrior(s)
+	t.Log(r.Min())
+	costs := r.Costs.s
+	for len(costs) > 0 {
+		t.Log(costs[:len(s)])
+		costs = costs[len(s):]
+	}
+	decs := r.Decisions.s
+	for len(decs) > 0 {
+		t.Log(decs[:len(s)])
+		decs = decs[len(s):]
+	}
+	testSimulation(t, r)
+}
+
 func TestTree(t *testing.T) {
 	probabilities := []float64{0.3, 0.2, 0.4, 0.1}
 	tree := NewPrior(probabilities).Tree()
