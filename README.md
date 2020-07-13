@@ -42,6 +42,7 @@ algorithm-class
   - Binary Tree
   - Digital Search Tree
   - Huffman Encoding
+  - Optimal Binary Tree
   - Patricia Tree
   - Radix Tree
   - Red-Black Tree
