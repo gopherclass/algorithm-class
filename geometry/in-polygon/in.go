@@ -21,6 +21,7 @@ func In(s []plane.Point, x plane.Point) bool {
 	k := i
 
 	crossings := 0
+	var onEdge bool
 	check := func(j int) {
 		var e, ray plane.Segment
 		e.Min = s[i]
@@ -34,12 +35,20 @@ func In(s []plane.Point, x plane.Point) bool {
 		ray.Max.X = e.Max.X + 1
 		ray.Max.Y = x.Y
 		if (x.Y == e.Min.Y && x.X <= e.Min.X) || (x.Y == e.Max.Y && x.X <= e.Max.X) {
+			onEdge = true
 			return
 		}
-		i = j
-		if ray.Intersect(e) {
-			crossings++
+		if onEdge {
+			if (s[i].Y-x.Y)*(s[j].Y-x.Y) < 0 {
+				crossings++
+			}
+		} else {
+			if ray.Intersect(e) {
+				crossings++
+			}
 		}
+		i = j
+		onEdge = false
 	}
 
 	for j := k + 1; j < len(s); j++ {

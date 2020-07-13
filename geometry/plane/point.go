@@ -27,3 +27,7 @@ func (p Point) Dot(q Point) int {
 func Det(p, q Point) int {
 	return p.X*q.Y - p.Y*q.X
 }
+
+func Dir(x, y, z Point) int {
+	return Det(y.Sub(x), z.Sub(x))
+}
